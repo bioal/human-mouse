@@ -7,7 +7,7 @@ my $DIR = "/home/chiba/github/bioal/human-mouse/data/genomes";
 my $GENOME = "$DIR/ucsc_human/";
 my $USAGE=
 "Usage: $PROGRAM [OPTIONS] [LIST]
--p /genome/path: $GENOME by default
+-m: for mouse
 -u UPSTREAM:  1000 by default
 -d DOWNSTREAM: 200 by default
 (retrieved length = UPSTREAM + DOWNSTREAM)
