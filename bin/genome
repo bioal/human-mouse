@@ -7,7 +7,8 @@ my $DIR = "/home/chiba/github/bioal/human-mouse/data/genomes";
 my $GENOME = "$DIR/ucsc_human/";
 my $USAGE=
 "Usage: $PROGRAM [OPTIONS] [LIST]
--m: for mouse
+-m: for mm10
+-M: for mm39
 -u UPSTREAM:  1000 by default
 -d DOWNSTREAM: 200 by default
 (retrieved length = UPSTREAM + DOWNSTREAM)
@@ -22,10 +23,12 @@ or
 
 
 my %OPT;
-getopts('mu:d:', \%OPT);
+getopts('mMu:d:', \%OPT);
 
 if ($OPT{m}) {
     $GENOME = "$DIR/ucsc_mouse/";
+} elsif ($OPT{M}) {
+    $GENOME = "$DIR/ucsc_mm39/";
 }
 my $uplen = 1000;
 my $downlen = 1000;
