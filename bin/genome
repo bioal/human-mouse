@@ -57,7 +57,7 @@ sub getseq_relative {
     my ($chr, $strand, $pos, $uplen, $downlen) = @_;
     my $seq;
     my $len = $uplen + $downlen;
-    
+
     if ($strand =~ /\+/ || $strand =~ /1/){
 	my $start = $pos - $uplen;
 	my $end = $start + $len - 1;
@@ -74,10 +74,10 @@ sub getseq_relative {
 	$seq = reverse($seq);
 	$seq =~ tr/atcgATCG/tagcTAGC/;
     }
-    
+
     #$seq =~ tr/atcgn/ATCGN/;  if capital letter is required
     return $seq;
-}	
+}
 
 
 sub getseq_absolute {
@@ -93,7 +93,7 @@ sub getseq_absolute {
     my $ptr_end = ($end-1) + length($first_line) + int(($end-1)/$line_len);
 
     my $seq = "";
-    open(CHR, "$GENOME/chr$chr.fa") || die; 
+    open(CHR, "$GENOME/chr$chr.fa") || die;
     seek(CHR, $ptr_start, 0);
     read(CHR, $seq, $ptr_end - $ptr_start + 1);
     close(CHR);
