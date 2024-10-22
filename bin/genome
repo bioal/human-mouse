@@ -1,0 +1,103 @@
+#!/usr/bin/perl -w
+use strict;
+use Getopt::Std;
+use File::Basename;
+my $PROGRAM = basename $0;
+my $DIR = "/home/chiba/github/bioal/human-mouse/data/genomes";
+my $GENOME = "$DIR/ucsc_human/";
+my $USAGE=
+"Usage: $PROGRAM [OPTIONS] [LIST]
+-p /genome/path: $GENOME by default
+-u UPSTREAM:  1000 by default
+-d DOWNSTREAM: 200 by default
+(retrieved length = UPSTREAM + DOWNSTREAM)
+
+LIST:
+ chr2    +       27105181
+ chr2    -       27624222
+or
+ chr2    1       27105181
+ chr2    0       27624222
+";
+
+
+my %OPT;
+getopts('mu:d:', \%OPT);
+
+if ($OPT{m}) {
+    $GENOME = "$DIR/ucsc_mouse/";
+}
+my $uplen = 1000;
+my $downlen = 1000;
+if (defined $OPT{u}) {
+    $uplen = $OPT{u}
+}
+if (defined $OPT{d}) {
+    $downlen = $OPT{d}
+}
+
+if (@ARGV != 3) {
+    print STDERR $USAGE;
+    exit 1;
+}
+my ($chr, $strand, $pos) = @ARGV;
+$chr =~ s/^chr//;
+
+my $seq = getseq_relative($chr, $strand, $pos, $uplen, $downlen);
+if (length($seq) == $downlen + $uplen) {
+    print ">@ARGV\n";
+    print "$seq\n";
+} else {
+    print ">@ARGV\ttruncated\n";
+    print "$seq\n";
+    print STDERR "@ARGV\ttruncated.\n";
+}
+
+sub getseq_relative {
+    my ($chr, $strand, $pos, $uplen, $downlen) = @_;
+    my $seq;
+    my $len = $uplen + $downlen;
+    
+    if ($strand =~ /\+/ || $strand =~ /1/){
+	my $start = $pos - $uplen;
+	my $end = $start + $len - 1;
+	$start = 1 if $start < 1;
+	$end = 1 if $end < 1;
+	$seq = getseq_absolute($chr, $start, $end);
+    }else{
+	my $start = $pos - ($downlen - 1);
+	my $end = $start + $len - 1;
+	$start = 1 if $start < 1;
+	$end = 1 if $end < 1;
+	$seq = getseq_absolute($chr, $start, $end);
+
+	$seq = reverse($seq);
+	$seq =~ tr/atcgATCG/tagcTAGC/;
+    }
+    
+    #$seq =~ tr/atcgn/ATCGN/;  if capital letter is required
+    return $seq;
+}	
+
+
+sub getseq_absolute {
+    my ($chr, $start, $end) = @_;
+
+    open(CHR, "$GENOME/chr$chr.fa") || die "Can't open $GENOME/chr$chr.fa";
+    my $first_line = <CHR>;
+    my $second_line = <CHR>;
+    close(CHR);
+
+    my $line_len = length($second_line)-1;
+    my $ptr_start = ($start-1) + length($first_line) + int(($start-1)/$line_len);
+    my $ptr_end = ($end-1) + length($first_line) + int(($end-1)/$line_len);
+
+    my $seq = "";
+    open(CHR, "$GENOME/chr$chr.fa") || die; 
+    seek(CHR, $ptr_start, 0);
+    read(CHR, $seq, $ptr_end - $ptr_start + 1);
+    close(CHR);
+
+    $seq =~ s/\n//g;
+    return $seq;
+}
